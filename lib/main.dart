@@ -31,14 +31,13 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
     with SingleTickerProviderStateMixin, RestorationMixin {
   late TabController _tabController;
   final RestorableInt tabIndex = RestorableInt(0);
-  final TextEditingController _imgUrlController = TextEditingController(
-      text:
-          'https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png');
-  final TextEditingController _captionController =
-      TextEditingController(text: 'Sample caption');
-  String _imageUrl =
-      'https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png';
+  final TextEditingController _imgUrlController = TextEditingController(text: 'https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png');
+  final TextEditingController _captionController = TextEditingController(text: 'Sample caption');
+  String _imageUrl = 'https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png';
   String _caption = 'Sample caption';
+
+  final TextEditingController _cityController = TextEditingController();
+  String? _cityEntered;
 
   @override
   String get restorationId => 'tab_non_scrollable_demo';
@@ -66,7 +65,14 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
     tabIndex.dispose();
     _imgUrlController.dispose();
     _captionController.dispose();
+    _cityController.dispose();
     super.dispose();
+  }
+
+  void _onFetchWeather() {
+    final c = _cityController.text.trim().isEmpty ? 'Atlanta' : _cityController.text.trim();
+    setState(() => _cityEntered = c);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fetching weather for $c...')));
   }
 
   @override
@@ -94,33 +100,60 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
           Container(
             color: bg[0],
             alignment: Alignment.center,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Hello from Tab 1',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    showDialog<void>(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('Greetings'),
-                        content:
-                            const Text('This is an AlertDialog on Tab 1.'),
-                        actions: [
-                          TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(),
-                              child: const Text('OK'))
-                        ],
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Weather — Today',
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _cityController,
+                      textInputAction: TextInputAction.done,
+                      decoration: const InputDecoration(
+                        labelText: 'City',
+                        hintText: 'Enter a city (e.g., Atlanta)',
+                        border: OutlineInputBorder(),
                       ),
-                    );
-                  },
-                  child: const Text('Show Alert'),
+                      onSubmitted: (_) => _onFetchWeather(),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _onFetchWeather,
+                        child: const Text('Fetch Weather'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (_cityEntered != null)
+                      Card(
+                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.place_outlined, size: 28),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _cityEntered!,
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              const Text('— ready'),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
           Container(
@@ -130,15 +163,13 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
               children: [
                 TextField(
                   controller: _captionController,
-                  decoration:
-                      const InputDecoration(labelText: 'Caption / Name'),
+                  decoration: const InputDecoration(labelText: 'Caption / Name'),
                   onChanged: (v) => setState(() => _caption = v),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _imgUrlController,
-                  decoration:
-                      const InputDecoration(labelText: 'Image URL (network)'),
+                  decoration: const InputDecoration(labelText: 'Image URL (network)'),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -164,8 +195,7 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
                       _imageUrl,
                       width: 150,
                       height: 150,
-                      errorBuilder: (_, __, ___) =>
-                          const Text('Failed to load image'),
+                      errorBuilder: (_, __, ___) => const Text('Failed to load image'),
                     ),
                   ),
                 ),
