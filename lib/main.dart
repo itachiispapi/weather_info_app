@@ -32,16 +32,25 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
     with SingleTickerProviderStateMixin, RestorationMixin {
   late TabController _tabController;
   final RestorableInt tabIndex = RestorableInt(0);
-  final TextEditingController _imgUrlController = TextEditingController(text: 'https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png');
+
+  // (from base) simple image demo fields kept for completeness if you want later
+  final TextEditingController _imgUrlController = TextEditingController(
+    text: 'https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png',
+  );
   final TextEditingController _captionController = TextEditingController(text: 'Sample caption');
   String _imageUrl = 'https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png';
   String _caption = 'Sample caption';
 
+  // Tab 1 — Today
   final TextEditingController _cityController = TextEditingController();
   String? _cityEntered;
   int? _todayTempC;
   String? _todayCond;
   final List<String> _conds = ['Sunny', 'Cloudy', 'Rainy'];
+
+  // Tab 2 — 7-day forecast
+  final List<String> _weekday = const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  List<Map<String, dynamic>> _forecast = [];
 
   @override
   String get restorationId => 'tab_non_scrollable_demo';
@@ -75,13 +84,42 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
 
   void _onFetchWeather() {
     final r = Random();
-    final c = _cityController.text.trim().isEmpty ? 'Atlanta' : _cityController.text.trim();
+    final c = _cityController.text.trim().isEmpty
+        ? 'Atlanta'
+        : _cityController.text.trim();
     setState(() {
       _cityEntered = c;
-      _todayTempC = 15 + r.nextInt(16);
+      _todayTempC = 15 + r.nextInt(16); // 15–30 °C
       _todayCond = _conds[r.nextInt(_conds.length)];
     });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fetched weather for $c')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Fetched weather for $c')),
+    );
+  }
+
+  void _gen7DayForecast() {
+    final r = Random();
+    final now = DateTime.now();
+    final city = (_cityEntered ?? _cityController.text.trim()).isEmpty
+        ? 'Atlanta'
+        : (_cityEntered ?? _cityController.text.trim());
+    final List<Map<String, dynamic>> data = [];
+
+    for (int i = 0; i < 7; i++) {
+      final d = now.add(Duration(days: i));
+      final idx = (d.weekday - 1) % 7;
+      data.add({
+        'day': _weekday[idx],
+        'temp': 15 + r.nextInt(16),
+        'cond': _conds[r.nextInt(_conds.length)],
+        'city': city,
+      });
+    }
+
+    setState(() => _forecast = data);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Generated 7-day forecast for $city')),
+    );
   }
 
   IconData _iconFor(String cond) {
@@ -117,6 +155,7 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
       body: TabBarView(
         controller: _tabController,
         children: [
+          // TAB 1 — Today
           Container(
             color: bg[0],
             alignment: Alignment.center,
@@ -179,52 +218,44 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
               ),
             ),
           ),
+
+          // TAB 2 — 7-Day Forecast
           Container(
             color: bg[1],
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                TextField(
-                  controller: _captionController,
-                  decoration: const InputDecoration(labelText: 'Caption / Name'),
-                  onChanged: (v) => setState(() => _caption = v),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _imgUrlController,
-                  decoration: const InputDecoration(labelText: 'Image URL (network)'),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _imageUrl = _imgUrlController.text.trim().isEmpty
-                              ? _imageUrl
-                              : _imgUrlController.text.trim();
-                        });
-                      },
-                      child: const Text('Load Image'),
-                    ),
-                    const SizedBox(width: 12),
-                    Text('Caption: $_caption'),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: Center(
-                    child: Image.network(
-                      _imageUrl,
-                      width: 150,
-                      height: 150,
-                      errorBuilder: (_, __, ___) => const Text('Failed to load image'),
-                    ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _gen7DayForecast,
+                    child: const Text('Get 7-Day Forecast'),
                   ),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: _forecast.isEmpty
+                      ? const Center(child: Text('No forecast yet'))
+                      : ListView.builder(
+                          itemCount: _forecast.length,
+                          itemBuilder: (context, i) {
+                            final f = _forecast[i];
+                            return Card(
+                              elevation: 1,
+                              child: ListTile(
+                                leading: Icon(_iconFor(f['cond'] as String)),
+                                title: Text('${f['day']} — ${f['city']}'),
+                                subtitle: Text('${f['temp']}°C • ${f['cond']}'),
+                              ),
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
           ),
+
+          // TAB 3 — unchanged
           Container(
             color: bg[2],
             alignment: Alignment.center,
@@ -239,6 +270,8 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
               child: const Text('Click me'),
             ),
           ),
+
+          // TAB 4 — unchanged
           Container(
             color: bg[3],
             padding: const EdgeInsets.all(12),
