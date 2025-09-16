@@ -33,7 +33,7 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
   late TabController _tabController;
   final RestorableInt tabIndex = RestorableInt(0);
 
-  // Tab 2 (image/caption) controllers from your base
+  // (from base) simple image demo fields kept for completeness if you want later
   final TextEditingController _imgUrlController = TextEditingController(
     text: 'https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png',
   );
@@ -41,14 +41,14 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
   String _imageUrl = 'https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png';
   String _caption = 'Sample caption';
 
-  // Today (Tab 1) state
+  // Tab 1 — Today
   final TextEditingController _cityController = TextEditingController();
   String? _cityEntered;
   int? _todayTempC;
   String? _todayCond;
   final List<String> _conds = ['Sunny', 'Cloudy', 'Rainy'];
 
-  // 7-day (Tab 2) state
+  // Tab 2 — 7-day forecast
   final List<String> _weekday = const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   List<Map<String, dynamic>> _forecast = [];
 
@@ -110,7 +110,7 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
       final idx = (d.weekday - 1) % 7;
       data.add({
         'day': _weekday[idx],
-        'temp': 15 + r.nextInt(16),        // 15–30
+        'temp': 15 + r.nextInt(16),
         'cond': _conds[r.nextInt(_conds.length)],
         'city': city,
       });
@@ -142,7 +142,6 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
       Colors.amber[50]!,
       Colors.purple[50]!
     ];
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -156,7 +155,7 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
       body: TabBarView(
         controller: _tabController,
         children: [
-          // TAB 1 — Today (with input + simulated weather)
+          // TAB 1 — Today
           Container(
             color: bg[0],
             alignment: Alignment.center,
@@ -220,7 +219,7 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
             ),
           ),
 
-          // TAB 2 — 7-Day Forecast (button + list)
+          // TAB 2 — 7-Day Forecast
           Container(
             color: bg[1],
             padding: const EdgeInsets.all(16),
@@ -256,7 +255,7 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
             ),
           ),
 
-          // TAB 3 — same as base
+          // TAB 3 — unchanged
           Container(
             color: bg[2],
             alignment: Alignment.center,
@@ -272,7 +271,7 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
             ),
           ),
 
-          // TAB 4 — same as base (image/caption area preserved on Tab 2)
+          // TAB 4 — unchanged
           Container(
             color: bg[3],
             padding: const EdgeInsets.all(12),
