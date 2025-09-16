@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -38,6 +39,9 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
 
   final TextEditingController _cityController = TextEditingController();
   String? _cityEntered;
+  int? _todayTempC;
+  String? _todayCond;
+  final List<String> _conds = ['Sunny', 'Cloudy', 'Rainy'];
 
   @override
   String get restorationId => 'tab_non_scrollable_demo';
@@ -70,9 +74,25 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
   }
 
   void _onFetchWeather() {
+    final r = Random();
     final c = _cityController.text.trim().isEmpty ? 'Atlanta' : _cityController.text.trim();
-    setState(() => _cityEntered = c);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fetching weather for $c...')));
+    setState(() {
+      _cityEntered = c;
+      _todayTempC = 15 + r.nextInt(16);
+      _todayCond = _conds[r.nextInt(_conds.length)];
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fetched weather for $c')));
+  }
+
+  IconData _iconFor(String cond) {
+    switch (cond) {
+      case 'Sunny':
+        return Icons.wb_sunny_outlined;
+      case 'Cloudy':
+        return Icons.cloud_outlined;
+      default:
+        return Icons.umbrella_outlined;
+    }
   }
 
   @override
@@ -131,22 +151,25 @@ class __TabsNonScrollableDemoState extends State<_TabsNonScrollableDemo>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    if (_cityEntered != null)
+                    if (_cityEntered != null && _todayTempC != null && _todayCond != null)
                       Card(
                         elevation: 2,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Row(
                             children: [
-                              const Icon(Icons.place_outlined, size: 28),
+                              Icon(_iconFor(_todayCond!), size: 36),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: Text(
-                                  _cityEntered!,
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(_cityEntered!, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                                    const SizedBox(height: 4),
+                                    Text('$_todayTempC°C • $_todayCond', style: const TextStyle(fontSize: 16)),
+                                  ],
                                 ),
                               ),
-                              const Text('— ready'),
                             ],
                           ),
                         ),
